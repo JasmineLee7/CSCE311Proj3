@@ -1,2 +1,4 @@
 # CSCE311Proj3
-proj 3
+This project implements a command-line utility that performs file operations entirely through memory-mapped files using mmap, without any traditional read/write system calls.
+The program supports three operations: create, insert, and append. Create opens or truncates a file at a given path, resizes it to the requested number of bytes, maps it into memory, and fills every byte with a given fill character. Insert opens an existing file, shifts all bytes from a given offset to end-of-file forward to make room, then writes the incoming bytes from stdin at that offset. Append reads bytes from stdin and writes them to the end of an existing file incrementally, mapping at most twice the current file size per iteration to satisfy the address space constraint.
+All file operations use the provided proj3 wrapper functions: proj3::open, proj3::close, proj3::fstat, proj3::ftruncate, proj3::mmap, proj3::munmap, and proj3::msync. If an error occurs during insert or append, the file is restored to its original size and contents before returning.
