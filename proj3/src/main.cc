@@ -1,3 +1,4 @@
+// Jasmine Lee 
 #include <proj3/lib/include/mmap.h>
 
 #include <iostream>
@@ -9,9 +10,9 @@ int Append(char *argv[]);
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        std::cout << "Usage Cases:\n" <<
-            "--Create--  " << argv[0] << " create <path> <fill_char> <size>\n" <<
-            "--Insert--  " << argv[0] << " insert <path> <offset> <bytes_incoming> < stdin\n" <<
+        std::cout << "Usage Cases:\n" 
+            "--Create--  " << argv[0] << " create <path> <fill_char> <size>\n" 
+            "--Insert--  " << argv[0] << " insert <path> <offset> <bytes_incoming> < stdin\n" 
             "--Append--  " << argv[0] << " append <path> <bytes_incoming> < stdin" << std::endl;
         return 0;
     }
@@ -34,26 +35,22 @@ int Create(char *argv[]) {
     char fill_char = argv[3][0];
     std::size_t size = std::atoi(argv[4]);
 
-    // Open or create the file, truncating any existing content
     int fd = proj3::open(path, proj3::O_RDWR | proj3::O_CREAT | proj3::O_TRUNC,
                          S_IRUSR | S_IWUSR);
     if (fd == -1) {
         return 1;
     }
 
-    // Resize file to requested size
     if (proj3::ftruncate(fd, size) == -1) {
         proj3::close(fd);
         return 1;
     }
 
-    // Nothing to map or fill for a zero-size file
     if (size == 0) {
         proj3::close(fd);
         return 0;
     }
 
-    // Map the file into memory
     void *map = proj3::mmap(nullptr, size,
                             proj3::PROT_READ | proj3::PROT_WRITE,
                             proj3::MAP_SHARED, fd, 0);
@@ -63,7 +60,6 @@ int Create(char *argv[]) {
         return 1;
     }
 
-    // Fill every byte with fill_char
     char *data = static_cast<char *>(map);
     for (std::size_t i = 0; i < size; ++i) {
         data[i] = fill_char;
@@ -97,29 +93,25 @@ int Insert(char *argv[]) {
         return 1;
     }
 
-    // Get current file size
     struct stat f_stat;
     if (proj3::fstat(fd, &f_stat) == -1) {
         proj3::close(fd);
         return 1;
     }
-    ssize_t f_len = static_cast<ssize_t>(f_stat.st_size);
+    std::size_t f_len = static_cast<std::size_t>(f_stat.st_size);
 
-    // offset must not exceed file size
-    if (static_cast<ssize_t>(offset) > f_len) {
+    if (offset > f_len) {
         proj3::close(fd);
         return 1;
     }
 
     std::size_t new_size = f_len + bytes_incoming;
 
-    // Expand the file to fit incoming bytes
     if (proj3::ftruncate(fd, new_size) == -1) {
         proj3::close(fd);
         return 1;
     }
 
-    // Map the expanded file
     void *map = proj3::mmap(nullptr, new_size,
                             proj3::PROT_READ | proj3::PROT_WRITE,
                             proj3::MAP_SHARED, fd, 0);
@@ -131,12 +123,10 @@ int Insert(char *argv[]) {
 
     char *data = static_cast<char *>(map);
 
-    // Shift bytes from offset to end-of-file forward by bytes_incoming
-    for (ssize_t i = f_len; i > static_cast<ssize_t>(offset); --i) {
+    for (std::size_t i = f_len; i > offset; --i) {
         data[(i - 1) + bytes_incoming] = data[i - 1];
     }
 
-    // Write bytes_incoming bytes from stdin at offset
     for (std::size_t i = offset; i < offset + bytes_incoming; ++i) {
         int c = std::cin.get();
         if (c == EOF) {
@@ -177,22 +167,17 @@ int Append(char *argv[]) {
         return 1;
     }
 
-    // Get current file size
     struct stat f_stat;
     if (proj3::fstat(fd, &f_stat) == -1) {
         proj3::close(fd);
         return 1;
     }
-    ssize_t f_len = static_cast<ssize_t>(f_stat.st_size);
 
-    std::size_t orig_size = static_cast<std::size_t>(f_len);
+    std::size_t orig_size = static_cast<std::size_t>(f_stat.st_size);
     std::size_t file_size = orig_size;
     std::size_t bytes_remaining = bytes_incoming;
 
-    // Append bytes incrementally; each mapping must not exceed 2x file size at mapping time
     while (bytes_remaining > 0) {
-        // Append min(file_size, bytes_remaining) bytes per iteration
-        // If file is empty, start with 1 byte
         std::size_t bytes_to_append;
         if (file_size == 0) {
             bytes_to_append = 1;
@@ -208,7 +193,6 @@ int Append(char *argv[]) {
             return 1;
         }
 
-        // Map the full file; new_size <= 2 * file_size satisfies the constraint
         void *map = proj3::mmap(nullptr, new_size,
                                 proj3::PROT_READ | proj3::PROT_WRITE,
                                 proj3::MAP_SHARED, fd, 0);
@@ -220,7 +204,6 @@ int Append(char *argv[]) {
 
         char *data = static_cast<char *>(map);
 
-        // Read bytes_to_append bytes from stdin into the new portion of the file
         for (std::size_t i = file_size; i < new_size; ++i) {
             int c = std::cin.get();
             if (c == EOF) {
