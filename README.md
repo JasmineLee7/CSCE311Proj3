@@ -1,4 +1,23 @@
 # CSCE311Proj3
-This project implements a command-line utility that performs file operations entirely through memory-mapped files using mmap, without any traditional read/write system calls.
-The program supports three operations: create, insert, and append. Create opens or truncates a file at a given path, resizes it to the requested number of bytes, maps it into memory, and fills every byte with a given fill character. Insert opens an existing file, shifts all bytes from a given offset to end-of-file forward to make room, then writes the incoming bytes from stdin at that offset. Append reads bytes from stdin and writes them to the end of an existing file incrementally, mapping at most twice the current file size per iteration to satisfy the address space constraint.
-All file operations use the provided proj3 wrapper functions: proj3::open, proj3::close, proj3::fstat, proj3::ftruncate, proj3::mmap, proj3::munmap, and proj3::msync. If an error occurs during insert or append, the file is restored to its original size and contents before returning.
+
+Implements a command-line utility that performs file operations entirely through
+memory-mapped files using mmap, without traditional read/write system calls.
+Supports three operations: create (opens/truncates a file and fills it with a
+given character), insert (shifts existing bytes forward from an offset and writes
+stdin bytes there), and append (writes stdin bytes to end-of-file incrementally,
+mapping at most twice the current file size per iteration). All operations use
+the provided proj3 wrapper functions. On error, insert and append restore the
+file to its original size and contents.
+
+# Files
+- `main.cc` — implements create, insert, and append
+- `README.md` — this file
+
+# Build
+mkdir -p bin obj
+make
+
+# Usage
+bin/mmap_util create dat/data.bin A 1024
+echo -n "Jasmine" | bin/mmap_util insert dat/data.bin 100 5
+bin/mmap_util append dat/data.bin 1027 < dat/data_app.bin

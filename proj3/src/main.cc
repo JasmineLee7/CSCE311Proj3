@@ -1,4 +1,4 @@
-// Jasmine Lee 
+// Copyright Jasmine Lee 2025
 #include <proj3/lib/include/mmap.h>
 
 #include <iostream>
